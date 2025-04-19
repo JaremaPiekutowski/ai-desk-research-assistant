@@ -1,0 +1,70 @@
+{% extends "research_app/base.html" %}
+{% load static %}
+
+{% block title %}Upload Documents & Query{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Start New Research</h2>
+
+    {# Display general form errors here if needed #}
+    {% if form.non_field_errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            {% for error in form.non_field_errors %}
+                <span class="block sm:inline">{{ error }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form id="research-form"
+          method="post"
+          enctype="multipart/form-data"
+          hx-post="{% url 'research_app:start_research' %}"
+          hx-target="#status-container"
+          hx-swap="outerHTML" {# Replace the whole container #}
+          hx-indicator="#loading-indicator">
+
+        {% csrf_token %}
+
+        <div class="mb-4">
+            <label for="{{ form.documents.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">
+                {{ form.documents.label }}
+            </label>
+            {{ form.documents }}
+            {% if form.documents.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.documents.errors|first }}</p>
+            {% endif %}
+             <p class="text-gray-600 text-xs italic mt-1">Allowed types: PDF, DOCX, PPTX, TXT.</p>
+        </div>
+
+        <div class="mb-6">
+            <label for="{{ form.query.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">
+                {{ form.query.label }}
+            </label>
+            {{ form.query }}
+             {% if form.query.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.query.errors|first }}</p>
+            {% endif %}
+        </div>
+
+        <div class="flex items-center justify-between">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Start Research
+            </button>
+            <span id="loading-indicator" class="htmx-indicator ml-4">
+                <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            </span>
+        </div>
+    </form>
+</div>
+
+{# Container for status updates and results #}
+<div id="status-container" class="mt-8">
+    {# This area will be replaced by _progress_area.html initially #}
+</div>
+
+{% endblock %}

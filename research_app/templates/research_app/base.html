@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>{% block title %}Desk Research Assistant{% endblock %}</title>
+    {# Load HTMX #}
+    <script src="{% static 'research_app/js/htmx.min.js' %}" defer></script>
+    <style>
+        /* Simple loading indicator styling */
+        .htmx-indicator {
+            display: none;
+            opacity: 0;
+            transition: opacity 200ms ease-in;
+        }
+        .htmx-request .htmx-indicator {
+            display: inline;
+            opacity: 1;
+        }
+        .htmx-request.htmx-indicator {
+             display: inline;
+             opacity: 1;
+         }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <nav class="bg-blue-600 p-4 text-white">
+        <div class="container mx-auto">
+            <h1 class="text-xl font-semibold">Desk Research Assistant</h1>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-8 p-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="text-center text-gray-500 text-sm mt-10 pb-4">
+        Powered by Django, HTMX, Tailwind CSS, and Gemini
+    </footer>
+</body>
+</html>

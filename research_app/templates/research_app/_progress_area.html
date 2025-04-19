@@ -1,0 +1,58 @@
+{# This div will be replaced or updated via HTMX swaps #}
+<div id="status-container"
+     class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto"
+     {% if session.status != 'completed' and session.status != 'failed' %}
+         hx-get="{% url 'research_app:session_status' session.session_id %}"
+         hx-trigger="load delay:2s, every 3s" {# Poll on load and every 3s #}
+         hx-swap="outerHTML" {# Replace this whole container with the response #}
+         hx-indicator="#global-progress-indicator"
+     {% endif %}>
+
+    <h3 class="text-xl font-semibold mb-4 text-gray-700">
+        Research Progress (Session: {{ session.session_id|truncatechars:8 }}...)
+        <span id="global-progress-indicator" class="htmx-indicator ml-2">
+             <svg class="animate-spin inline h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+             </svg>
+         </span>
+    </h3>
+
+    <div class="mb-4 p-3 rounded
+        {% if session.status == 'pending' %}bg-gray-100 text-gray-800
+        {% elif session.status == 'processing' %}bg-blue-100 text-blue-800
+        {% elif session.status == 'summarizing' %}bg-indigo-100 text-indigo-800
+        {% elif session.status == 'failed' %}bg-red-100 text-red-800 border border-red-400
+        {% else %}bg-gray-100 text-gray-800{% endif %}">
+        <strong>Overall Status:</strong> {{ session.get_status_display }}
+        {% if session.status == 'failed' and session.error_message %}
+            <p class="text-sm mt-1"><strong>Error:</strong> {{ session.error_message }}</p>
+        {% endif %}
+    </div>
+
+    <h4 class="text-lg font-semibold mb-2 text-gray-600">Document Status:</h4>
+    <ul class="list-disc list-inside space-y-1 text-sm">
+        {% for doc in documents %}
+            <li class="
+                {% if doc.status == 'error' %}text-red-600
+                {% elif doc.status == 'processed' %}text-green-600
+                {% elif doc.status == 'processing' or doc.status == 'converting' %}text-blue-600 animate-pulse
+                {% else %}text-gray-700{% endif %}">
+                {{ doc.original_filename }}:
+                <span class="font-medium">{{ doc.get_status_display }}</span>
+                 {% if doc.status == 'error' and doc.processing_log %} - {{ doc.processing_log|truncatechars:50 }}{% endif %}
+            </li>
+        {% empty %}
+            <li>No documents associated with this session yet.</li>
+        {% endfor %}
+    </ul>
+
+    {% if session.status == 'failed' %}
+    <p class="mt-4 text-center text-red-700">Processing failed. Please review the error message and try again.</p>
+     <div class="mt-4 text-center">
+         <a href="{% url 'research_app:index' %}" class="text-blue-500 hover:underline">Start a new research</a>
+     </div>
+    {% endif %}
+
+    {# Note: The hx-get trigger above ensures this partial keeps updating itself until status is completed or failed #}
+</div>
