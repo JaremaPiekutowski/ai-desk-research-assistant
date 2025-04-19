@@ -1,6 +1,6 @@
 {# This div will be replaced or updated via HTMX swaps #}
 <div id="status-container"
-     class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto"
+     class="bg-white p-8 rounded-lg shadow-lg max-w-2xl mx-auto"
      {% if session.status != 'completed' and session.status != 'failed' %}
          hx-get="{% url 'research_app:session_status' session.session_id %}"
          hx-trigger="load delay:2s, every 3s" {# Poll on load and every 3s #}
@@ -8,50 +8,112 @@
          hx-indicator="#global-progress-indicator"
      {% endif %}>
 
-    <h3 class="text-xl font-semibold mb-4 text-gray-700">
-        Research Progress (Session: {{ session.session_id|truncatechars:8 }}...)
+    <h3 class="text-xl font-semibold mb-4 text-gray-700 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        Research Progress
+        <span class="text-sm font-normal text-gray-500 ml-2">(Session: {{ session.session_id|truncatechars:8 }}...)</span>
         <span id="global-progress-indicator" class="htmx-indicator ml-2">
-             <svg class="animate-spin inline h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+             <svg class="animate-spin inline h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
              </svg>
          </span>
     </h3>
 
-    <div class="mb-4 p-3 rounded
-        {% if session.status == 'pending' %}bg-gray-100 text-gray-800
-        {% elif session.status == 'processing' %}bg-blue-100 text-blue-800
-        {% elif session.status == 'summarizing' %}bg-indigo-100 text-indigo-800
-        {% elif session.status == 'failed' %}bg-red-100 text-red-800 border border-red-400
-        {% else %}bg-gray-100 text-gray-800{% endif %}">
-        <strong>Overall Status:</strong> {{ session.get_status_display }}
+    <div class="mb-6 p-4 rounded-md border
+        {% if session.status == 'pending' %}bg-gray-50 text-gray-800 border-gray-200
+        {% elif session.status == 'processing' %}bg-blue-50 text-blue-800 border-blue-200
+        {% elif session.status == 'summarizing' %}bg-indigo-50 text-indigo-800 border-indigo-200
+        {% elif session.status == 'failed' %}bg-red-50 text-red-800 border-red-300
+        {% else %}bg-gray-50 text-gray-800 border-gray-200{% endif %}">
+        <div class="flex items-center">
+            {% if session.status == 'failed' %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            {% elif session.status == 'summarizing' or session.status == 'processing' %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            {% endif %}
+            <strong>Overall Status:</strong> {{ session.get_status_display }}
+        </div>
         {% if session.status == 'failed' and session.error_message %}
-            <p class="text-sm mt-1"><strong>Error:</strong> {{ session.error_message }}</p>
+            <p class="text-sm mt-2 ml-7"><strong>Error:</strong> {{ session.error_message }}</p>
         {% endif %}
     </div>
 
-    <h4 class="text-lg font-semibold mb-2 text-gray-600">Document Status:</h4>
-    <ul class="list-disc list-inside space-y-1 text-sm">
+    <h4 class="text-lg font-semibold mb-3 text-gray-600 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Document Status:
+    </h4>
+    <ul class="list-none space-y-2 text-sm mb-6">
         {% for doc in documents %}
-            <li class="
+            <li class="flex items-center p-2 rounded
+                {% if doc.status == 'error' %}bg-red-50
+                {% elif doc.status == 'processed' %}bg-green-50
+                {% elif doc.status == 'processing' or doc.status == 'converting' %}bg-blue-50
+                {% else %}bg-gray-50{% endif %}">
+
+                {% if doc.status == 'error' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                {% elif doc.status == 'processed' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                {% elif doc.status == 'processing' or doc.status == 'converting' %}
+                    <svg class="animate-spin h-5 w-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                {% endif %}
+
+                <span class="truncate mr-2 max-w-xs">{{ doc.original_filename }}</span>:
+                <span class="font-medium
                 {% if doc.status == 'error' %}text-red-600
                 {% elif doc.status == 'processed' %}text-green-600
-                {% elif doc.status == 'processing' or doc.status == 'converting' %}text-blue-600 animate-pulse
+                {% elif doc.status == 'processing' or doc.status == 'converting' %}text-blue-600
                 {% else %}text-gray-700{% endif %}">
-                {{ doc.original_filename }}:
-                <span class="font-medium">{{ doc.get_status_display }}</span>
-                 {% if doc.status == 'error' and doc.processing_log %} - {{ doc.processing_log|truncatechars:50 }}{% endif %}
+                    {{ doc.get_status_display }}
+                </span>
+                {% if doc.status == 'error' and doc.processing_log %}
+                    <span class="ml-2 text-red-500 truncate">- {{ doc.processing_log|truncatechars:50 }}</span>
+                {% endif %}
             </li>
         {% empty %}
-            <li>No documents associated with this session yet.</li>
+            <li class="text-gray-500 italic p-2">No documents associated with this session yet.</li>
         {% endfor %}
     </ul>
 
     {% if session.status == 'failed' %}
-    <p class="mt-4 text-center text-red-700">Processing failed. Please review the error message and try again.</p>
-     <div class="mt-4 text-center">
-         <a href="{% url 'research_app:index' %}" class="text-blue-500 hover:underline">Start a new research</a>
-     </div>
+    <div class="mt-6 text-center border-t pt-4">
+        <p class="mb-4 text-red-700 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Processing failed. Please review the error message and try again.
+        </p>
+        <a href="{% url 'research_app:index' %}" class="btn-primary inline-flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Start a new research
+        </a>
+    </div>
     {% endif %}
 
     {# Note: The hx-get trigger above ensures this partial keeps updating itself until status is completed or failed #}

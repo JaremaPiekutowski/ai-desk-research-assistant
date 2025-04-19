@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse, FileResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.conf import settings
@@ -20,6 +21,8 @@ from .utils import (
     save_report,
 )
 
+# Create logger
+logger = logging.getLogger(__name__)
 
 def index(request):
     """Displays the main upload form."""
@@ -48,7 +51,7 @@ def start_research_session(request):
                 original_filename=original_filename,
                 status='uploaded'
             )
-            print(f"Saved document record: {doc.id} for session {session.session_id}")
+            logger.info(f"Saved document record: {doc.id} for session {session.session_id}")
 
 
         # 3. Trigger background processing (Simulated Synchronously Here)
@@ -57,7 +60,7 @@ def start_research_session(request):
         # process_research_task.delay(session.session_id)
         # You'd need to define this Celery task in tasks.py
         # ****************************
-        print(f"Starting synchronous processing for session {session.session_id}...")
+        logger.info(f"Starting synchronous processing for session {session.session_id}...")
         process_research_sync(session.session_id) # Call the synchronous version directly
 
         # Respond with HTMX to start polling for status
@@ -68,7 +71,7 @@ def start_research_session(request):
     else:
         # Form is invalid, re-render the index page with errors
         # This part might need refinement for HTMX - perhaps return an error partial
-         print("Form errors:", form.errors)
+         logger.info("Form errors: %s", form.errors)
          # For simplicity, just redirecting back for now. A better HTMX way
          # would be to return the form with errors in an HX-Swap.
          # return render(request, 'research_app/index.html', {'form': form}) # This would cause full page reload
@@ -96,7 +99,7 @@ def process_research_sync(session_id):
 
         # 5. Loop over documents
         for doc in documents:
-            print(f"Processing document: {doc.original_filename}")
+            logger.info(f"Processing document: {doc.original_filename}")
             # Update status for UI feedback
             doc.status = 'converting'; doc.save()
             time.sleep(0.1) # Simulate work / allow UI update if polling fast
@@ -111,7 +114,7 @@ def process_research_sync(session_id):
                 time.sleep(0.1)
 
                 # Make Gemini call
-                print(f"Querying LLM for: {doc.original_filename}")
+                logger.info(f"Querying LLM for: {doc.original_filename}")
                 answer, quotes = query_gemini_single_doc(
                     extracted_text,
                     session.query,
@@ -145,7 +148,7 @@ def process_research_sync(session_id):
 
 
         # Create summary
-        print(f"Generating summary for session {session.session_id}")
+        logger.info(f"Generating summary for session {session.session_id}")
         session.status = 'summarizing'; session.save()
         time.sleep(0.1)
 
@@ -158,21 +161,21 @@ def process_research_sync(session_id):
         if saved_path and "Error:" not in summary_answer:
              session.status = 'completed'
              session.error_message = None
-             print(f"Session {session.session_id} completed successfully.")
+             logger.info(f"Session {session.session_id} completed successfully.")
         elif "Error:" in summary_answer:
             session.status = 'failed'
             session.error_message = f"Failed during summary generation: {summary_answer}"
-            print(f"Session {session.session_id} failed during summary.")
+            logger.info(f"Session {session.session_id} failed during summary.")
         else: # Error during saving is handled in save_report
              session.status = 'failed' # Already set if save_report failed
-             print(f"Session {session.session_id} failed during report saving.")
+             logger.info(f"Session {session.session_id} failed during report saving.")
 
         session.save()
 
     except ResearchSession.DoesNotExist:
-         print(f"Error: Session {session_id} not found during processing.")
+         logger.error(f"Error: Session {session_id} not found during processing.")
     except Exception as e:
-        print(f"Unhandled error during processing session {session_id}: {e}")
+        logger.error(f"Unhandled error during processing session {session_id}: {e}")
         try:
             # Try to mark the session as failed
             session = ResearchSession.objects.get(pk=session_id)
@@ -182,7 +185,7 @@ def process_research_sync(session_id):
         except ResearchSession.DoesNotExist:
              pass # Session doesn't exist anyway
         except Exception as inner_e:
-             print(f"Further error trying to mark session {session_id} as failed: {inner_e}")
+             logger.error(f"Further error trying to mark session {session_id} as failed: {inner_e}")
 
 # --- Status and Download Views ---
 
@@ -209,7 +212,7 @@ def get_session_status(request, session_id):
         # Render an error message or an empty div if session not found
          return HttpResponse("Session not found.", status=404)
     except Exception as e:
-         print(f"Error fetching status for {session_id}: {e}")
+         logger.error(f"Error fetching status for {session_id}: {e}")
          # Return a generic server error response
          return HttpResponseServerError("An error occurred while fetching status.")
 
@@ -229,7 +232,7 @@ def download_report(request, session_id):
             # Use FileResponse for efficient file serving
             return FileResponse(open(report_path, 'rb'), as_attachment=True, filename=session.report_filename)
         except Exception as e:
-             print(f"Error serving file {report_path}: {e}")
+             logger.error(f"Error serving file {report_path}: {e}")
              return HttpResponseServerError("Error serving the report file.")
     else:
         return HttpResponse("Report file not found or is inaccessible.", status=404)

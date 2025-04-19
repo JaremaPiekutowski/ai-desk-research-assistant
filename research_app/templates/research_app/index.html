@@ -4,8 +4,8 @@
 {% block title %}Upload Documents & Query{% endblock %}
 
 {% block content %}
-<div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Start New Research</h2>
+<div class="bg-white p-8 rounded-lg shadow-lg max-w-2xl mx-auto">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">Start New Research</h2>
 
     {# Display general form errors here if needed #}
     {% if form.non_field_errors %}
@@ -22,37 +22,45 @@
           hx-post="{% url 'research_app:start_research' %}"
           hx-target="#status-container"
           hx-swap="outerHTML" {# Replace the whole container #}
-          hx-indicator="#loading-indicator">
+          hx-indicator="#loading-indicator"
+          class="space-y-6">
 
         {% csrf_token %}
 
         <div class="mb-4">
-            <label for="{{ form.documents.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">
+            <label for="{{ form.documents.id_for_label }}" class="block text-gray-700 font-bold mb-2">
                 {{ form.documents.label }}
             </label>
-            {{ form.documents }}
+            <div class="border-2 border-dashed border-blue-300 rounded-lg p-4 bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                {{ form.documents }}
+            </div>
             {% if form.documents.errors %}
                 <p class="text-red-500 text-xs italic mt-1">{{ form.documents.errors|first }}</p>
             {% endif %}
-             <p class="text-gray-600 text-xs italic mt-1">Allowed types: PDF, DOCX, PPTX, TXT.</p>
+            <p class="text-gray-600 text-sm mt-2">Allowed types: PDF, DOCX, PPTX, TXT.</p>
         </div>
 
         <div class="mb-6">
-            <label for="{{ form.query.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">
+            <label for="{{ form.query.id_for_label }}" class="block text-gray-700 font-bold mb-2">
                 {{ form.query.label }}
             </label>
-            {{ form.query }}
-             {% if form.query.errors %}
+            <textarea name="{{ form.query.name }}" id="{{ form.query.id_for_label }}" rows="3"
+                   class="custom-input w-full resize-y"
+                   placeholder="What information are you looking for?">{{ form.query.value|default:'' }}</textarea>
+            {% if form.query.errors %}
                 <p class="text-red-500 text-xs italic mt-1">{{ form.query.errors|first }}</p>
             {% endif %}
         </div>
 
         <div class="flex items-center justify-between">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            <button type="submit" class="btn-primary shadow-md flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
                 Start Research
             </button>
-            <span id="loading-indicator" class="htmx-indicator ml-4">
-                <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <span id="loading-indicator" class="htmx-indicator ml-4 flex items-center">
+                <svg class="animate-spin h-5 w-5 text-blue-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>

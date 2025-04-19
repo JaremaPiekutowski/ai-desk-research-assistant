@@ -8,7 +8,16 @@
     <title>{% block title %}Desk Research Assistant{% endblock %}</title>
     {# Load HTMX #}
     <script src="{% static 'research_app/js/htmx.min.js' %}" defer></script>
+    {# Add Cabin font from Google Fonts #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <style>
+        /* Apply Cabin font globally */
+        body {
+            font-family: 'Cabin', sans-serif;
+        }
+
         /* Simple loading indicator styling */
         .htmx-indicator {
             display: none;
@@ -23,12 +32,59 @@
              display: inline;
              opacity: 1;
          }
+
+        /* Custom input styles */
+        .custom-input {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .custom-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Custom button styles */
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
-    <nav class="bg-blue-600 p-4 text-white">
+    <nav class="bg-blue-600 p-4 text-white shadow-md">
         <div class="container mx-auto">
-            <h1 class="text-xl font-semibold">Desk Research Assistant</h1>
+            <h1 class="text-2xl font-bold">Desk Research Assistant</h1>
         </div>
     </nav>
 
